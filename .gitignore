@@ -31,3 +31,6 @@ reddit_data/*.json
 # System files
 .DS_Store
 Thumbs.db
+
+# Make sure type stubs are included in repo
+!typings/

@@ -33,10 +33,7 @@ repos:
     -   id: mypy
         additional_dependencies: [pydantic>=1.10.13, types-requests]
 
-# Disable pyright for now due to many type errors
-# We'll address these in a future PR
 -   repo: https://github.com/RobertCraigie/pyright-python
     rev: v1.1.348
     hooks:
     -   id: pyright
-        stages: [manual]

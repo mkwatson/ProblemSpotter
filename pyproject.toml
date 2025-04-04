@@ -24,6 +24,14 @@ reportUnnecessaryTypeIgnoreComment = true
 reportIncompleteStub = true
 exclude = ["tests"]
 
+# Define specific settings for libraries we use but don't have type stubs
+pythonVersion = "3.12"
+pythonPlatform = "Darwin"
+
+# External packages that don't have type stubs
+stubPath = "./typings"
+# typeshedPath = "./typeshed"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
@@ -32,11 +40,14 @@ python_functions = "test_*"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.ruff.lint]
 select = ["E", "F", "I"]
 ignore = []
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "tests/*" = ["F401", "E402"]
+"typings/**/*.pyi" = ["F401"]  # Allow unused imports in stub files
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["fetch_problems"]

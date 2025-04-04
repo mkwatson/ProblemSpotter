@@ -33,9 +33,9 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Protocol, Sequence, TypeVar, Union, cast
 
-import praw  # pyright: ignore[reportMissingTypeStubs]
-from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
-from pydantic import BaseModel  # pyright: ignore[reportMissingImports]
+import praw
+from dotenv import load_dotenv
+from pydantic import BaseModel
 
 # Constants
 REDDIT_DATA_DIR = "./reddit_data"
@@ -194,13 +194,13 @@ def search_reddit_posts(reddit: praw.Reddit, search_phrase: str) -> List[RedditS
         List of Reddit submission objects matching the search criteria with NSFW content removed
     """
     # Search across all subreddits
-    subreddit = reddit.subreddit("all")  # type: ignore
+    subreddit = reddit.subreddit("all")
 
     # Get the most recent posts containing the search phrase
     # Using explicit cast to tell the type checker this is a list of RedditSubmission
     search_results = cast(
         List[RedditSubmission],
-        list(subreddit.search(search_phrase, sort=SEARCH_SORT, limit=SEARCH_LIMIT)),  # type: ignore
+        list(subreddit.search(search_phrase, sort=SEARCH_SORT, limit=SEARCH_LIMIT)),
     )
 
     # Filter out NSFW content
@@ -286,20 +286,24 @@ def save_search_results(
 
             # Handle author field which could be a string or an object with a name property
             author = getattr(post, "author", "")
-            if hasattr(author, "name"):
-                post_data["author"] = author.name  # type: ignore
-            else:
+            # Check if author is a Redditor object with a name attribute
+            if isinstance(author, str):
                 post_data["author"] = author
+            else:
+                # It's a Redditor object, access the name attribute
+                post_data["author"] = getattr(author, "name", "")
 
             post_data["created_utc"] = getattr(post, "created_utc", 0.0)
 
             # Handle subreddit field which could be a string or an object
             # with a display_name property
             subreddit = getattr(post, "subreddit", "")
-            if hasattr(subreddit, "display_name"):
-                post_data["subreddit"] = subreddit.display_name  # type: ignore
-            else:
+            # Check if subreddit is a Subreddit object with a display_name attribute
+            if isinstance(subreddit, str):
                 post_data["subreddit"] = subreddit
+            else:
+                # It's a Subreddit object, access the display_name attribute
+                post_data["subreddit"] = getattr(subreddit, "display_name", "")
 
             post_data["permalink"] = getattr(post, "permalink", "")
             post_data["url"] = getattr(post, "url", "")
