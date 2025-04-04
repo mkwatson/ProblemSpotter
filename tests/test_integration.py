@@ -1,17 +1,24 @@
 """Integration tests for the ProblemSpotter script."""
 
-import os
 import json
-import pytest
-from unittest.mock import patch, MagicMock
+import os
 import sys
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fetch_problems import main
 
 
 class TestIntegration:
-    @patch.dict(os.environ, {"REDDIT_CLIENT_ID": "test_client_id", "REDDIT_CLIENT_SECRET": "test_client_secret"})
+    @patch.dict(
+        os.environ,
+        {
+            "REDDIT_CLIENT_ID": "test_client_id",
+            "REDDIT_CLIENT_SECRET": "test_client_secret",
+        },
+    )
     @patch("praw.Reddit")
     def test_end_to_end_flow(self, mock_reddit, tmp_path, monkeypatch):
         """Test the full script execution with mocked Reddit API responses"""
@@ -19,13 +26,13 @@ class TestIntegration:
         output_dir = tmp_path / "reddit_data"
         output_dir.mkdir()
         monkeypatch.setattr("fetch_problems.create_output_directory", lambda path: None)
-        
+
         # Mock the Reddit API responses
         mock_client = MagicMock()
         mock_reddit.return_value = mock_client
         mock_subreddit = MagicMock()
         mock_client.subreddit.return_value = mock_subreddit
-        
+
         # Create mock posts
         mock_post1 = MagicMock()
         mock_post1.id = "post1"
@@ -38,7 +45,7 @@ class TestIntegration:
         mock_post1.url = "https://reddit.com/r/learnprogramming/comments/post1"
         mock_post1.score = 10
         mock_post1.over_18 = False
-        
+
         mock_post2 = MagicMock()
         mock_post2.id = "post2"
         mock_post2.title = "How do I fix this error?"
@@ -50,13 +57,13 @@ class TestIntegration:
         mock_post2.url = "https://reddit.com/r/programming/comments/post2"
         mock_post2.score = 5
         mock_post2.over_18 = False
-        
+
         # Set the return value directly to the list of mock posts
         mock_subreddit.search.return_value = [mock_post1, mock_post2]
-        
+
         # Mock the save function to capture the output
         saved_file_path = str(output_dir / "test_output.json")
-        
+
         def mock_save_results(results, out_dir, filename=None):
             posts_data = []
             for post in results:
@@ -70,88 +77,90 @@ class TestIntegration:
                     "permalink": post.permalink,
                     "url": post.url,
                     "score": post.score,
-                    "over_18": post.over_18
+                    "over_18": post.over_18,
                 }
                 posts_data.append(post_data)
-            
+
             with open(saved_file_path, "w") as f:
                 json.dump(posts_data, f)
-            
+
             return saved_file_path
-        
+
         monkeypatch.setattr("fetch_problems.save_search_results", mock_save_results)
-        
+
         # Override the filename generation to use a fixed name
-        monkeypatch.setattr("fetch_problems.generate_filename", lambda: "test_output.json")
-        
+        monkeypatch.setattr(
+            "fetch_problems.generate_filename", lambda: "test_output.json"
+        )
+
         # Run the main function
         with patch("fetch_problems.create_output_directory", lambda path: None):
             monkeypatch.setattr("fetch_problems.REDDIT_DATA_DIR", str(output_dir))
             main()
-        
+
         # Verify that the search was performed correctly
         mock_client.subreddit.assert_called_once_with("all")
-        mock_subreddit.search.assert_called_once_with(
-            "how do I", 
-            sort="new", 
-            limit=100
-        )
-        
+        mock_subreddit.search.assert_called_once_with("how do I", sort="new", limit=100)
+
         # Verify that the results were saved correctly
         assert os.path.exists(saved_file_path)
-        
+
         with open(saved_file_path, "r") as f:
             saved_data = json.load(f)
-        
+
         assert len(saved_data) == 2
         assert saved_data[0]["id"] == "post1"
         assert saved_data[0]["title"] == "How do I learn Python?"
         assert saved_data[1]["id"] == "post2"
         assert saved_data[1]["title"] == "How do I fix this error?"
-    
-    @patch.dict(os.environ, {"REDDIT_CLIENT_ID": "test_client_id", "REDDIT_CLIENT_SECRET": "test_client_secret"})
+
+    @patch.dict(
+        os.environ,
+        {
+            "REDDIT_CLIENT_ID": "test_client_id",
+            "REDDIT_CLIENT_SECRET": "test_client_secret",
+        },
+    )
     @patch("praw.Reddit")
     def test_empty_results(self, mock_reddit, tmp_path, monkeypatch):
         """Test the script behavior when no results are found"""
         # Set up the output directory to a temporary path
         output_dir = tmp_path / "reddit_data"
         output_dir.mkdir()
-        
+
         # Mock the Reddit API to return empty results
         mock_client = MagicMock()
         mock_reddit.return_value = mock_client
         mock_subreddit = MagicMock()
         mock_client.subreddit.return_value = mock_subreddit
         mock_subreddit.search.return_value = []
-        
+
         # Mock the save function
         saved_file_path = str(output_dir / "test_output.json")
-        
+
         def mock_save_results(results, out_dir, filename=None):
             with open(saved_file_path, "w") as f:
                 json.dump([], f)
             return saved_file_path
-        
+
         monkeypatch.setattr("fetch_problems.save_search_results", mock_save_results)
-        monkeypatch.setattr("fetch_problems.generate_filename", lambda: "test_output.json")
+        monkeypatch.setattr(
+            "fetch_problems.generate_filename", lambda: "test_output.json"
+        )
         monkeypatch.setattr("fetch_problems.create_output_directory", lambda path: None)
         monkeypatch.setattr("fetch_problems.REDDIT_DATA_DIR", str(output_dir))
-        
+
         # Run the main function
         main()
-        
+
         # Verify that the search was performed correctly
         mock_client.subreddit.assert_called_once_with("all")
-        mock_subreddit.search.assert_called_once_with(
-            "how do I", 
-            sort="new", 
-            limit=100
-        )
-        
+        mock_subreddit.search.assert_called_once_with("how do I", sort="new", limit=100)
+
         # Verify that an empty result set was saved
         assert os.path.exists(saved_file_path)
-        
+
         with open(saved_file_path, "r") as f:
             saved_data = json.load(f)
-        
-        assert len(saved_data) == 0 
+
+        assert len(saved_data) == 0
