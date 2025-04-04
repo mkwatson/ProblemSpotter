@@ -1,19 +1,25 @@
 import json
 import os
+
 # Import the module we'll build (doesn't exist yet)
 # This will fail initially, as expected in TDD
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List  # pyright: ignore[reportMissingTypeStubs]
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pydantic import BaseModel, Field
+from pydantic import BaseModel  # pyright: ignore[reportMissingImports]
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from fetch_problems import (create_output_directory, generate_filename,
-                            initialize_reddit_client, load_env_vars,
-                            save_search_results, search_reddit_posts)
+from fetch_problems import (  # pyright: ignore
+    create_output_directory,
+    generate_filename,
+    initialize_reddit_client,
+    load_env_vars,
+    save_search_results,
+    search_reddit_posts,
+)
 
 
 # Define expected schema using Pydantic for validation

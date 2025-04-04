@@ -5,10 +5,8 @@ import os
 import sys
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from fetch_problems import main
+from fetch_problems import main  # pyright: ignore
 
 
 class TestIntegration:
@@ -89,9 +87,7 @@ class TestIntegration:
         monkeypatch.setattr("fetch_problems.save_search_results", mock_save_results)
 
         # Override the filename generation to use a fixed name
-        monkeypatch.setattr(
-            "fetch_problems.generate_filename", lambda: "test_output.json"
-        )
+        monkeypatch.setattr("fetch_problems.generate_filename", lambda: "test_output.json")
 
         # Run the main function
         with patch("fetch_problems.create_output_directory", lambda path: None):
@@ -144,9 +140,7 @@ class TestIntegration:
             return saved_file_path
 
         monkeypatch.setattr("fetch_problems.save_search_results", mock_save_results)
-        monkeypatch.setattr(
-            "fetch_problems.generate_filename", lambda: "test_output.json"
-        )
+        monkeypatch.setattr("fetch_problems.generate_filename", lambda: "test_output.json")
         monkeypatch.setattr("fetch_problems.create_output_directory", lambda path: None)
         monkeypatch.setattr("fetch_problems.REDDIT_DATA_DIR", str(output_dir))
 

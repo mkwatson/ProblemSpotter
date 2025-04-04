@@ -22,8 +22,21 @@ reportUnnecessaryCast = true
 reportConstantRedefinition = true
 reportUnnecessaryTypeIgnoreComment = true
 reportIncompleteStub = true
+exclude = ["tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = "test_*.py"
-python_functions = "test_*" 
+python_functions = "test_*"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+select = ["E", "F", "I"]
+ignore = []
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["F401", "E402"]
+
+[tool.ruff.isort]
+known-first-party = ["fetch_problems"]

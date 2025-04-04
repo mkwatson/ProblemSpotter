@@ -1,8 +1,31 @@
 """
 ProblemSpotter: A tool for fetching Reddit posts containing 'how do I' phrases
 
-This script queries Reddit using PRAW for posts containing the phrase "how do I",
-and stores the raw results in a JSON file.
+This module is the core of the ProblemSpotter project, responsible for:
+
+1. Connecting to the Reddit API using PRAW
+2. Searching for posts containing "how do I" phrases
+3. Storing the results in a structured JSON format
+4. Filtering out inappropriate content (NSFW)
+
+It operates as a standalone script that can be run directly. When executed,
+it fetches up to 100 of the most recent posts matching the search criteria and
+saves them to a timestamped file in the './reddit_data/' directory.
+
+Usage:
+    $ python fetch_problems.py
+
+Requirements:
+    - Reddit API credentials in environment variables (or .env file):
+        - REDDIT_CLIENT_ID
+        - REDDIT_CLIENT_SECRET
+    - Python packages:
+        - praw
+        - python-dotenv
+        - pydantic
+
+Created with strict type checking in mind, using Protocol classes to define
+interfaces for the PRAW objects we interact with.
 """
 
 import json
@@ -10,9 +33,9 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Protocol, Sequence, TypeVar, Union, cast
 
-import praw  # type: ignore # No type stubs available for praw
-from dotenv import load_dotenv
-from pydantic import BaseModel
+import praw  # pyright: ignore[reportMissingTypeStubs]
+from dotenv import load_dotenv  # pyright: ignore[reportMissingImports]
+from pydantic import BaseModel  # pyright: ignore[reportMissingImports]
 
 # Constants
 REDDIT_DATA_DIR = "./reddit_data"
@@ -23,14 +46,57 @@ SEARCH_SORT = "new"
 
 # Type definitions to handle PRAW objects
 class RedditAuthor(Protocol):
+    """
+    Protocol defining the expected interface for a Reddit author.
+
+    This protocol declares the minimal required structure that a Reddit author
+    object must implement for our code to work with it. The actual PRAW
+    implementation may have more fields and methods, but this is what we need.
+
+    Attributes:
+        name: The username of the Reddit author
+    """
+
     name: str
 
 
 class RedditSubreddit(Protocol):
+    """
+    Protocol defining the expected interface for a Reddit subreddit.
+
+    This protocol defines the minimal structure required from a subreddit
+    object for our code to work with it. The actual PRAW implementation may
+    have more fields and methods, but this is what we need.
+
+    Attributes:
+        display_name: The name of the subreddit without the "r/" prefix
+    """
+
     display_name: str
 
 
 class RedditSubmission(Protocol):
+    """
+    Protocol defining the expected interface for a Reddit submission (post).
+
+    This protocol defines all the properties we need to extract from a
+    Reddit post. Using a Protocol allows us to work with PRAW's objects
+    without needing to implement all their complexity, just the parts
+    we need to use.
+
+    Attributes:
+        id: The unique identifier of the post
+        title: The title of the post
+        selftext: The body text content of the post
+        author: Either a RedditAuthor object or a string with the author's name
+        created_utc: Unix timestamp (float) when the post was created
+        subreddit: Either a RedditSubreddit object or a string with the subreddit name
+        permalink: The path portion of the URL (without domain) to the post
+        url: The full URL to the post
+        score: The net upvote count of the post
+        over_18: Boolean indicating whether the post is marked as NSFW (Not Safe For Work)
+    """
+
     id: str
     title: str
     selftext: str
@@ -48,15 +114,33 @@ T = TypeVar("T", bound=BaseModel)
 PostType = TypeVar("PostType", bound=Union[RedditSubmission, BaseModel])
 
 
+"""
+Type Variables Explanation:
+
+T:
+    A type variable bound to BaseModel. This allows us to create generic functions
+    that work with any Pydantic model while maintaining type safety.
+
+PostType:
+    A type variable that can represent either a RedditSubmission Protocol or a BaseModel.
+    This helps us handle both raw Reddit API responses and our own model objects
+    in a type-safe way.
+"""
+
+
 def load_env_vars() -> Dict[str, str]:
     """
     Load Reddit API credentials from environment variables.
 
+    This function reads the REDDIT_CLIENT_ID and REDDIT_CLIENT_SECRET from
+    environment variables set in a .env file. It verifies that both variables
+    exist and are not empty.
+
     Returns:
-        Dict containing client_id and client_secret
+        Dict containing client_id and client_secret keys with their values
 
     Raises:
-        ValueError: If required environment variables are missing
+        ValueError: If required environment variables are missing or empty
     """
     load_dotenv()
 
@@ -77,11 +161,15 @@ def initialize_reddit_client(credentials: Dict[str, str]) -> praw.Reddit:
     """
     Initialize and return a Reddit API client.
 
+    Creates a PRAW Reddit client instance using the provided credentials.
+    This client is configured for read-only access (no login required)
+    and identifies itself with a custom user agent.
+
     Args:
-        credentials: Dictionary containing client_id and client_secret
+        credentials: Dictionary containing client_id and client_secret keys
 
     Returns:
-        Initialized Reddit client
+        Initialized Reddit client ready to make API requests
     """
     return praw.Reddit(
         client_id=credentials["client_id"],
@@ -90,18 +178,20 @@ def initialize_reddit_client(credentials: Dict[str, str]) -> praw.Reddit:
     )
 
 
-def search_reddit_posts(
-    reddit: praw.Reddit, search_phrase: str
-) -> List[RedditSubmission]:
+def search_reddit_posts(reddit: praw.Reddit, search_phrase: str) -> List[RedditSubmission]:
     """
     Search Reddit for posts containing the given phrase.
 
+    Uses the Reddit API to search all subreddits for posts containing the specified
+    search phrase. The search results are sorted by newest first and limited to a
+    maximum number defined by SEARCH_LIMIT. NSFW content is filtered out.
+
     Args:
-        reddit: Initialized Reddit client
-        search_phrase: Phrase to search for
+        reddit: Initialized Reddit client from initialize_reddit_client()
+        search_phrase: The text phrase to search for in Reddit posts
 
     Returns:
-        List of Reddit submission objects matching the search criteria
+        List of Reddit submission objects matching the search criteria with NSFW content removed
     """
     # Search across all subreddits
     subreddit = reddit.subreddit("all")  # type: ignore
@@ -110,11 +200,7 @@ def search_reddit_posts(
     # Using explicit cast to tell the type checker this is a list of RedditSubmission
     search_results = cast(
         List[RedditSubmission],
-        list(
-            subreddit.search(  # type: ignore
-                search_phrase, sort=SEARCH_SORT, limit=SEARCH_LIMIT
-            )
-        ),
+        list(subreddit.search(search_phrase, sort=SEARCH_SORT, limit=SEARCH_LIMIT)),  # type: ignore
     )
 
     # Filter out NSFW content
@@ -127,6 +213,9 @@ def create_output_directory(directory_path: str) -> None:
     """
     Create the output directory if it doesn't exist.
 
+    This is a helper function that ensures the specified directory exists,
+    creating it and any necessary parent directories if they don't.
+
     Args:
         directory_path: Path to the directory to create
     """
@@ -137,6 +226,10 @@ def create_output_directory(directory_path: str) -> None:
 def generate_filename() -> str:
     """
     Generate a timestamped filename for the JSON output.
+
+    Creates a standardized filename with the current date and time appended
+    to make each file unique. Format follows the pattern:
+    "reddit_how_do_i_results_YYYYMMDD_HHMMSS.json"
 
     Returns:
         Formatted filename with current timestamp
@@ -153,13 +246,18 @@ def save_search_results(
     """
     Save the search results to a JSON file.
 
+    Converts Reddit submission objects or Pydantic models to a JSON-serializable
+    format and saves them to a file. Handles both Pydantic models (which have
+    a built-in dict conversion) and Reddit PRAW objects (which require attribute
+    extraction).
+
     Args:
         results: List of Reddit submission objects or Pydantic models
         output_dir: Directory to save the results in
-        filename: Optional filename to use (generates one if not provided)
+        filename: Optional custom filename to use (generates one if not provided)
 
     Returns:
-        Path to the saved file
+        Absolute path to the saved file
     """
     if filename is None:
         filename = generate_filename()
@@ -218,7 +316,19 @@ def save_search_results(
 
 
 def main() -> None:
-    """Main entry point for the script."""
+    """
+    Main entry point for the script.
+
+    Coordinates the full workflow:
+    1. Loads environment variables for Reddit API credentials
+    2. Initializes the Reddit client
+    3. Searches for posts containing the search phrase
+    4. Creates the output directory if needed
+    5. Saves the results to a JSON file
+
+    Handles exceptions by printing an error message and re-raising
+    to maintain the stack trace.
+    """
     try:
         # Load environment variables
         credentials = load_env_vars()

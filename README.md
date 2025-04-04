@@ -104,4 +104,4 @@ The JSON output contains an array of Reddit post objects with the following stru
   },
   // more posts...
 ]
-``` 
+```
