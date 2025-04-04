@@ -1,0 +1,29 @@
+[project]
+name = "problemspotter"
+version = "1.0.0"
+description = "A tool for fetching Reddit posts containing 'how do I' phrases"
+authors = [{name = "ProblemSpotter Team"}]
+requires-python = ">=3.13"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportMissingTypeStubs = true
+reportUnknownMemberType = true
+reportUnknownArgumentType = true
+reportUnknownVariableType = true
+reportUnknownParameterType = true
+reportUntypedFunctionDecorator = true
+reportUntypedClassDecorator = true
+reportPrivateUsage = "warning"
+reportImplicitStringConcatenation = true
+reportInvalidTypeVarUse = true
+reportUnnecessaryCast = true
+reportConstantRedefinition = true
+reportUnnecessaryTypeIgnoreComment = true
+reportIncompleteStub = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*" 

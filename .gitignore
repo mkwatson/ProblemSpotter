@@ -1,0 +1,33 @@
+# Environment and credentials
+.env
+venv/
+env/
+.venv/
+*.env
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.so
+.Python
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Generated data
+reddit_data/*.json
+
+# Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# System files
+.DS_Store
+Thumbs.db
