@@ -1,107 +1,126 @@
 # ProblemSpotter
 
-A Python script that queries Reddit for posts containing "how do I" phrases and stores the raw results in a JSON file.
+A tool for fetching Reddit posts containing "how do I" phrases, designed to identify common questions and problems people are trying to solve.
 
-## Project Overview
+## Development Standards
 
-ProblemSpotter is a simple utility that:
+This project enforces strict development standards to ensure code quality and maintainability:
 
-1. Searches Reddit using PRAW for posts containing the phrase "how do I"
-2. Filters for SFW content only
-3. Saves the raw API results to a JSON file with a timestamp
-4. Implements strict typing and automated testing
+- **Type Checking**: Full static type checking with pyright and mypy in strict mode
+- **Code Style**: Consistent formatting with Black and comprehensive linting with Ruff
+- **Testing**: Comprehensive test coverage with pytest
+- **Documentation**: Detailed docstrings following Google style conventions
+- **CI/CD**: Automated testing and validation with GitHub Actions
 
-## Requirements
+## Getting Started
 
-- Python 3.13
-- Dependencies listed in `requirements.txt`
-- Reddit API credentials (client ID and client secret)
+### Prerequisites
 
-## Installation
+- Python 3.12+
+- [Git](https://git-scm.com/)
+- Reddit API credentials (see below)
 
-1. Clone this repository
-2. Install dependencies:
+### Setup
 
-```bash
-pip install -r requirements.txt
-```
+1. **Clone the repository**:
 
-3. Create a `.env` file in the project root with your Reddit API credentials:
+   ```bash
+   git clone https://github.com/yourusername/ProblemSpotter.git
+   cd ProblemSpotter
+   ```
 
-```
-REDDIT_CLIENT_ID=your_client_id
-REDDIT_CLIENT_SECRET=your_client_secret
-```
+1. **Set up a virtual environment** (recommended):
 
-## Usage
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-Run the script:
+1. **Install dependencies**:
+
+   ```bash
+   pip install -e ".[dev]"
+   ```
+
+1. **Set up pre-commit hooks**:
+
+   ```bash
+   pre-commit install
+   ```
+
+1. **Create a .env file** with your Reddit API credentials:
+
+   ```
+   REDDIT_CLIENT_ID=your_client_id
+   REDDIT_CLIENT_SECRET=your_client_secret
+   ```
+
+   To obtain Reddit API credentials:
+
+   - Visit https://www.reddit.com/prefs/apps
+   - Click "create app" at the bottom
+   - Fill in the details (name, select "script", etc.)
+   - After creation, note the client ID (under the app name) and client secret
+
+### Running the Application
 
 ```bash
 python fetch_problems.py
 ```
 
-The script will:
-- Search Reddit for posts containing "how do I"
-- Filter out NSFW content
-- Save up to 100 most recent posts to a timestamped JSON file in the `reddit_data` directory
+This will:
+
+1. Connect to the Reddit API
+1. Search for recent posts containing "how do I" phrases
+1. Filter out NSFW content
+1. Save the results to a timestamped JSON file in the `./reddit_data/` directory
 
 ## Project Structure
 
-```
-problemspotter/
-├── reddit_data/
-│   └── reddit_how_do_i_results_<YYYYMMDD_HHMMSS>.json
-├── tests/
-│   ├── test_reddit_query.py
-│   └── test_integration.py
-├── fetch_problems.py
-├── requirements.txt
-├── pyproject.toml
-└── README.md
-```
+- `fetch_problems.py`: Main script for fetching Reddit posts
+- `typings/`: Type stub files for external libraries (praw, dotenv, pydantic)
+- `.pre-commit-config.yaml`: Configuration for pre-commit hooks
+- `pyproject.toml`: Project configuration and tool settings
+- `.github/workflows/`: CI/CD pipeline definitions
 
-## Testing
+## Code Standards
 
-Run tests:
+### Type Checking
 
-```bash
-python -m pytest
-```
+We use both pyright and mypy for comprehensive type checking:
 
-The project follows a strict test-driven development approach with:
-- Unit tests with mocked Reddit API responses
-- Integration tests to validate the full workflow
-- Pydantic models for schema validation
+- **pyright**: Used in strict mode with comprehensive error reporting
+- **mypy**: Additional type validation with pydantic plugin support
+- **Custom Type Stubs**: Created for external libraries in the `typings/` directory
 
-## Type Checking
+### Linting and Formatting
 
-Run the type checker:
+- **Black**: Code formatting with 100-character line length
+- **isort**: Import sorting with Black compatibility
+- **Ruff**: Comprehensive linting with multiple rule sets (E, F, I, C4, B, N, UP, D, PL, RUF, S)
 
-```bash
-pyright fetch_problems.py
-```
+### Testing
 
-The project enforces strict typing using pyright in its strictest mode.
+- **pytest**: For unit and integration testing
+- **Coverage**: Tracking and reporting code coverage
 
-## Output Format
+## For New Engineers
 
-The JSON output contains an array of Reddit post objects with the following structure:
+1. **First commit preparation**:
 
-```json
-[
-  {
-    "id": "post_id",
-    "title": "How do I learn Python?",
-    "selftext": "Post content text...",
-    "author": "username",
-    "created_utc": 1612345678.0,
-    "subreddit": "subreddit_name",
-    "permalink": "/r/subreddit/comments/post_id/title",
-    "url": "https://reddit.com/r/subreddit/comments/post_id/title",
-    "score": 10,
-    "over_18": false
-  },
-  // more posts...
-]
-```
+   - After setting up the environment, run `pre-commit run --all-files` to ensure your environment is correctly configured
+   - This will validate that all hooks are working correctly before you make your first commit
+
+1. **Common issues**:
+
+   - If you encounter type errors, check if you need to update the type stubs in the `typings/` directory
+   - For linting errors, run `ruff check --fix` to automatically fix many common issues
+
+1. **IDE configuration**:
+
+   - VSCode: Use the Python extension with pyright and Black integration
+   - PyCharm: Enable Black as an external tool and configure type checking
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

@@ -101,7 +101,7 @@ class TestIntegration:
         # Verify that the results were saved correctly
         assert os.path.exists(saved_file_path)
 
-        with open(saved_file_path, "r") as f:
+        with open(saved_file_path) as f:
             saved_data = json.load(f)
 
         assert len(saved_data) == 2
@@ -154,7 +154,7 @@ class TestIntegration:
         # Verify that an empty result set was saved
         assert os.path.exists(saved_file_path)
 
-        with open(saved_file_path, "r") as f:
+        with open(saved_file_path) as f:
             saved_data = json.load(f)
 
         assert len(saved_data) == 0

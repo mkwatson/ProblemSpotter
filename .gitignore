@@ -32,5 +32,10 @@ reddit_data/*.json
 .DS_Store
 Thumbs.db
 
+# Test coverage
+coverage.xml
+.coverage
+htmlcov/
+
 # Make sure type stubs are included in repo
 !typings/

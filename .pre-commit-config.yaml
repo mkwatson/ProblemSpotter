@@ -8,6 +8,12 @@ repos:
     -   id: check-added-large-files
     -   id: debug-statements
     -   id: check-merge-conflict
+    -   id: check-ast
+    -   id: check-json
+    -   id: check-toml
+    -   id: detect-private-key
+    -   id: mixed-line-ending
+        args: [--fix=lf]
 
 -   repo: https://github.com/psf/black
     rev: 24.1.0
@@ -26,6 +32,8 @@ repos:
     hooks:
     -   id: ruff
         args: [--line-length=100]
+        # Adding auto-fix behavior
+        additional_dependencies: []
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.8.0
@@ -37,3 +45,35 @@ repos:
     rev: v1.1.348
     hooks:
     -   id: pyright
+
+-   repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.0
+    hooks:
+    -   id: pyupgrade
+        args: [--py312-plus]
+
+-   repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.4
+    hooks:
+    -   id: forbid-crlf
+    -   id: remove-crlf
+    -   id: forbid-tabs
+        exclude: coverage\.xml
+    -   id: remove-tabs
+        args: [--whitespaces-count, '4']
+        exclude: coverage\.xml
+
+-   repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.17
+    hooks:
+    -   id: mdformat
+        additional_dependencies:
+        -   mdformat-gfm
+        -   mdformat-black
+
+-   repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.0.0
+    hooks:
+    -   id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []

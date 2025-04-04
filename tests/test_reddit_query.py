@@ -5,7 +5,7 @@ import os
 # This will fail initially, as expected in TDD
 import sys
 from datetime import datetime
-from typing import List  # pyright: ignore[reportMissingTypeStubs]
+from typing import Any, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -13,6 +13,7 @@ from pydantic import BaseModel  # pyright: ignore[reportMissingImports]
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fetch_problems import (  # pyright: ignore
+    RedditCredentials,
     create_output_directory,
     generate_filename,
     initialize_reddit_client,
@@ -37,7 +38,7 @@ class RedditPost(BaseModel):
 
 
 class RedditSearchResults(BaseModel):
-    posts: List[RedditPost]
+    posts: list[RedditPost]
     query_time: str
     search_phrase: str
 
@@ -49,17 +50,17 @@ class TestConfiguration:
         os.environ,
         {
             "REDDIT_CLIENT_ID": "test_client_id",
-            "REDDIT_CLIENT_SECRET": "test_client_secret",
+            "REDDIT_CLIENT_SECRET": "test_client_secret",  # Test secret, not a real one
         },
     )
-    def test_load_env_vars_success(self):
+    def test_load_env_vars_success(self) -> None:
         """Test that environment variables are correctly loaded"""
         credentials = load_env_vars()
         assert credentials["client_id"] == "test_client_id"
         assert credentials["client_secret"] == "test_client_secret"
 
     @patch("fetch_problems.os.environ.get", return_value=None)
-    def test_load_env_vars_missing(self, mock_env_get):
+    def test_load_env_vars_missing(self, mock_env_get: MagicMock) -> None:
         """Test that an error is raised when environment variables are missing"""
         with pytest.raises(ValueError):
             load_env_vars()
@@ -69,11 +70,12 @@ class TestConfiguration:
 class TestRedditAPI:
 
     @patch("praw.Reddit")
-    def test_initialize_reddit_client(self, mock_reddit):
+    def test_initialize_reddit_client(self, mock_reddit: MagicMock) -> None:
         """Test that the Reddit client is initialized with correct parameters"""
-        credentials = {
+        # Using RedditCredentials type for proper typing
+        credentials: RedditCredentials = {
             "client_id": "test_client_id",
-            "client_secret": "test_client_secret",
+            "client_secret": "test_client_secret",  # Test secret, not a real one
         }
 
         initialize_reddit_client(credentials)
@@ -85,7 +87,7 @@ class TestRedditAPI:
         )
 
     @patch("praw.Reddit")
-    def test_search_reddit_posts(self, mock_reddit):
+    def test_search_reddit_posts(self, mock_reddit: MagicMock) -> None:
         """Test that the search query is correctly formed"""
         # Setup mock
         mock_client = MagicMock()
@@ -110,9 +112,9 @@ class TestRedditAPI:
         mock_subreddit.search.return_value = [mock_post1]
 
         # Call the function
-        credentials = {
+        credentials: RedditCredentials = {
             "client_id": "test_client_id",
-            "client_secret": "test_client_secret",
+            "client_secret": "test_client_secret",  # Test secret, not a real one
         }
         client = initialize_reddit_client(credentials)
         results = search_reddit_posts(client, "how do I")
@@ -130,13 +132,13 @@ class TestRedditAPI:
 # Test Data Storage
 class TestDataStorage:
 
-    def test_create_output_directory(self, tmp_path):
+    def test_create_output_directory(self, tmp_path: Any) -> None:
         """Test that the output directory is created if it doesn't exist"""
         output_dir = tmp_path / "reddit_data"
         create_output_directory(str(output_dir))
         assert output_dir.exists()
 
-    def test_generate_filename(self):
+    def test_generate_filename(self) -> None:
         """Test that the filename is correctly generated with a timestamp"""
         filename = generate_filename()
         # Check format: reddit_how_do_i_results_YYYYMMDD_HHMMSS.json
@@ -146,7 +148,7 @@ class TestDataStorage:
         timestamp = filename[len("reddit_how_do_i_results_") : -len(".json")]
         datetime.strptime(timestamp, "%Y%m%d_%H%M%S")
 
-    def test_save_search_results(self, tmp_path):
+    def test_save_search_results(self, tmp_path: Any) -> None:
         """Test that search results are saved correctly"""
         # Create mock data
         mock_post = RedditPost(
@@ -178,7 +180,7 @@ class TestDataStorage:
         assert os.path.exists(output_path)
 
         # Verify content
-        with open(output_path, "r") as f:
+        with open(output_path, encoding="utf-8") as f:
             saved_data = json.load(f)
 
         assert len(saved_data) == 1
