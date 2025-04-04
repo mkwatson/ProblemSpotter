@@ -8,8 +8,6 @@ import json
 import os
 from typing import Any
 
-import pytest
-
 from fetch_problems import (
     RedditCredentials,
     create_output_directory,
@@ -40,10 +38,12 @@ def test_initialize_reddit_client() -> None:
     # Act
     reddit = initialize_reddit_client(credentials)
 
-    # Assert - using direct attribute access (attributes added in the function for testing)
-    assert reddit.client_id == "test_id"
-    assert reddit.client_secret == "test_secret"
-    assert "ProblemSpotter" in reddit.user_agent
+    # We need to use getattr here because the attributes are dynamically added to the Reddit object
+    # for testing purposes and are not part of the actual Reddit class interface
+    # ruff: noqa: B009
+    assert getattr(reddit, "client_id") == "test_id"
+    assert getattr(reddit, "client_secret") == "test_secret"
+    assert "ProblemSpotter" in getattr(reddit, "user_agent")
 
 
 def test_search_reddit_posts(mock_reddit_with_data: Any) -> None:

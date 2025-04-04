@@ -3,10 +3,13 @@
 import json
 import os
 import sys
+from typing import Any, Optional
 from unittest.mock import MagicMock, patch
 
+from pytest import MonkeyPatch
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from fetch_problems import main  # pyright: ignore
+from fetch_problems import main
 
 
 class TestIntegration:
@@ -18,12 +21,14 @@ class TestIntegration:
         },
     )
     @patch("praw.Reddit")
-    def test_end_to_end_flow(self, mock_reddit, tmp_path, monkeypatch):
+    def test_end_to_end_flow(
+        self, mock_reddit: MagicMock, tmp_path: Any, monkeypatch: MonkeyPatch
+    ) -> None:
         """Test the full script execution with mocked Reddit API responses"""
         # Set up the output directory to a temporary path
         output_dir = tmp_path / "reddit_data"
         output_dir.mkdir()
-        monkeypatch.setattr("fetch_problems.create_output_directory", lambda path: None)
+        monkeypatch.setattr("fetch_problems.create_output_directory", lambda _path: None)
 
         # Mock the Reddit API responses
         mock_client = MagicMock()
@@ -62,8 +67,8 @@ class TestIntegration:
         # Mock the save function to capture the output
         saved_file_path = str(output_dir / "test_output.json")
 
-        def mock_save_results(results, out_dir, filename=None):
-            posts_data = []
+        def mock_save_results(results: list[Any], out_dir: str, filename: str | None = None) -> str:
+            posts_data: list[dict[str, Any]] = []
             for post in results:
                 post_data = {
                     "id": post.id,
@@ -79,7 +84,7 @@ class TestIntegration:
                 }
                 posts_data.append(post_data)
 
-            with open(saved_file_path, "w") as f:
+            with open(saved_file_path, "w", encoding="utf-8") as f:
                 json.dump(posts_data, f)
 
             return saved_file_path
@@ -90,7 +95,7 @@ class TestIntegration:
         monkeypatch.setattr("fetch_problems.generate_filename", lambda: "test_output.json")
 
         # Run the main function
-        with patch("fetch_problems.create_output_directory", lambda path: None):
+        with patch("fetch_problems.create_output_directory", lambda _path: None):
             monkeypatch.setattr("fetch_problems.REDDIT_DATA_DIR", str(output_dir))
             main()
 
@@ -101,10 +106,12 @@ class TestIntegration:
         # Verify that the results were saved correctly
         assert os.path.exists(saved_file_path)
 
-        with open(saved_file_path) as f:
+        with open(saved_file_path, encoding="utf-8") as f:
             saved_data = json.load(f)
 
-        assert len(saved_data) == 2
+        # Add a constant for the expected number of posts to avoid magic number warning
+        expected_posts_count = 2
+        assert len(saved_data) == expected_posts_count
         assert saved_data[0]["id"] == "post1"
         assert saved_data[0]["title"] == "How do I learn Python?"
         assert saved_data[1]["id"] == "post2"
@@ -118,7 +125,9 @@ class TestIntegration:
         },
     )
     @patch("praw.Reddit")
-    def test_empty_results(self, mock_reddit, tmp_path, monkeypatch):
+    def test_empty_results(
+        self, mock_reddit: MagicMock, tmp_path: Any, monkeypatch: MonkeyPatch
+    ) -> None:
         """Test the script behavior when no results are found"""
         # Set up the output directory to a temporary path
         output_dir = tmp_path / "reddit_data"
@@ -134,14 +143,14 @@ class TestIntegration:
         # Mock the save function
         saved_file_path = str(output_dir / "test_output.json")
 
-        def mock_save_results(results, out_dir, filename=None):
-            with open(saved_file_path, "w") as f:
+        def mock_save_results(results: list[Any], out_dir: str, filename: str | None = None) -> str:
+            with open(saved_file_path, "w", encoding="utf-8") as f:
                 json.dump([], f)
             return saved_file_path
 
         monkeypatch.setattr("fetch_problems.save_search_results", mock_save_results)
         monkeypatch.setattr("fetch_problems.generate_filename", lambda: "test_output.json")
-        monkeypatch.setattr("fetch_problems.create_output_directory", lambda path: None)
+        monkeypatch.setattr("fetch_problems.create_output_directory", lambda _path: None)
         monkeypatch.setattr("fetch_problems.REDDIT_DATA_DIR", str(output_dir))
 
         # Run the main function
@@ -154,7 +163,7 @@ class TestIntegration:
         # Verify that an empty result set was saved
         assert os.path.exists(saved_file_path)
 
-        with open(saved_file_path) as f:
+        with open(saved_file_path, encoding="utf-8") as f:
             saved_data = json.load(f)
 
         assert len(saved_data) == 0

@@ -183,13 +183,18 @@ def save_search_results(posts: list[Any], output_dir: str, filename: str | None 
             score=post.score,
             over_18=post.over_18,
         )
-        
-        # Handle Pydantic v1 vs v2 differences
-        if hasattr(post_data, "model_dump"):
-            post_dict: dict[str, Any] = post_data.model_dump()  # type: ignore
+
+        # Handle Pydantic v1 vs v2 differences with proper typing
+        # Use the getattr pattern to avoid static type checker issues
+        model_dump_method = getattr(post_data, "model_dump", None)
+        if model_dump_method is not None:
+            # Pydantic v2
+            post_dict = model_dump_method()
         else:
-            post_dict = post_data.dict()  # type: ignore
-            
+            # Pydantic v1 - use dict() method
+            post_dict = post_data.dict()
+
+        # Add to output data - the dict is correctly typed by the framework
         output_data.append(post_dict)
 
     # Write the data to the file
