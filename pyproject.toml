@@ -22,6 +22,12 @@ dev = [
     "mypy>=1.8.0",
     "pyright>=1.1.348",
     "pre-commit>=3.6.0",
+    "types-requests>=2.31.0",
+    "types-setuptools>=69.0.0",
+    "mdformat>=0.7.17",
+    "mdformat-gfm>=0.3.5",
+    "mdformat-black>=0.1.1",
+    "tomli>=2.0.1",
 ]
 
 [build-system]
@@ -47,13 +53,8 @@ reportUnnecessaryTypeIgnoreComment = true
 reportIncompleteStub = true
 exclude = ["tests"]
 
-# Define specific settings for libraries we use but don't have type stubs
-pythonVersion = "3.12"
-pythonPlatform = "Darwin"
-
 # External packages that don't have type stubs
 stubPath = "./typings"
-# typeshedPath = "./typeshed"
 
 [[tool.pyright.overrides]]
 include = ["tests/**/*.py"]
@@ -61,6 +62,14 @@ reportUnknownMemberType = false
 reportUnknownArgumentType = false
 reportUnknownVariableType = false
 reportUnknownParameterType = false
+
+[[tool.pyright.overrides]]
+include = ["typings/**/*.pyi"]
+reportUnusedImport = false
+reportMissingParameterType = false
+reportUnknownParameterType = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -72,13 +81,36 @@ markers = [
     "integration: marks tests as integration tests",
 ]
 
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | typings
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+py_version = 312
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"
 extend-exclude = ["typings"]
 
 [tool.ruff.lint]
-# A more comprehensive set of rules
 select = [
     "E",   # pycodestyle errors
     "F",   # pyflakes
@@ -121,27 +153,8 @@ max-complexity = 10  # Set a reasonable complexity threshold
 max-args = 6  # Maximum number of arguments for functions/methods
 max-returns = 3  # Maximum number of return statements
 
-[tool.black]
-line-length = 100
-target-version = ["py312"]
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | typings
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

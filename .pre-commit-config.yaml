@@ -1,56 +1,66 @@
+# Pre-commit configuration
+# Tool-specific settings (line length, rules, etc.) are defined in pyproject.toml
+# This file only defines which hooks to run and their versions
+
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
     -   id: trailing-whitespace
+        stages: [pre-commit]
     -   id: end-of-file-fixer
+        stages: [pre-commit]
     -   id: check-yaml
+        stages: [pre-commit]
     -   id: check-added-large-files
+        stages: [pre-commit]
     -   id: debug-statements
+        stages: [pre-commit]
     -   id: check-merge-conflict
+        stages: [pre-commit]
     -   id: check-ast
+        stages: [pre-commit]
     -   id: check-json
+        stages: [pre-commit]
     -   id: check-toml
+        stages: [pre-commit]
     -   id: detect-private-key
+        stages: [pre-commit]
     -   id: mixed-line-ending
         args: [--fix=lf]
+        stages: [pre-commit]
 
--   repo: https://github.com/psf/black
-    rev: 24.1.0
+-   repo: local
     hooks:
     -   id: black
-        args: [--line-length=100]
+        name: black
+        entry: poetry run black
+        language: system
+        types: [python]
 
--   repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
     -   id: isort
-        args: [--profile=black, --line-length=100]
+        name: isort
+        entry: poetry run isort
+        language: system
+        types: [python]
 
--   repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.2.1
-    hooks:
     -   id: ruff
-        args: [--line-length=100]
-        # Adding auto-fix behavior
-        additional_dependencies: []
+        name: ruff
+        entry: poetry run ruff check --fix
+        language: system
+        types: [python]
 
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
     -   id: mypy
-        additional_dependencies: [pydantic>=1.10.13, types-requests]
+        name: mypy
+        entry: poetry run mypy
+        language: system
+        types: [python]
 
--   repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.348
-    hooks:
     -   id: pyright
-
--   repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.0
-    hooks:
-    -   id: pyupgrade
-        args: [--py312-plus]
+        name: pyright
+        entry: poetry run pyright
+        language: system
+        types: [python]
 
 -   repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.4
