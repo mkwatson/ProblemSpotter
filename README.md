@@ -125,9 +125,9 @@ This will:
 1. Connect to the Reddit API
 1. Search for recent posts containing "how do I" phrases
 1. Filter out NSFW content
-1. Save the results to a timestamped JSON file in `./reddit_data/raw/`
+1. Save the results to a timestamped JSON file in `./data/raw/`
 1. Analyze the posts using OpenAI GPT-4o to identify actual questions
-1. Save the analysis results to `./reddit_data/analyzed/`
+1. Save the analysis results to `./data/analyzed/`
 
 #### Fetch Only
 
@@ -148,7 +148,7 @@ python run_pipeline.py --analyze-only
 Or to analyze a specific file:
 
 ```bash
-python run_pipeline.py --analyze-only --file ./reddit_data/raw/your_file.json
+python run_pipeline.py --analyze-only --file ./data/raw/your_file.json
 ```
 
 #### Individual Scripts
@@ -162,7 +162,7 @@ python analyze_problems.py  # Analyze the latest fetched posts
 
 ## Understanding the Output
 
-After running the analysis, you'll find the results in `./reddit_data/analyzed/`. The output is a JSON file containing the original posts with added analysis:
+After running the analysis, you'll find the results in `./data/analyzed/`. The output is a JSON file containing the original posts with added analysis:
 
 ```json
 {
@@ -193,10 +193,10 @@ You can use standard command-line tools to explore the results:
 
 ```bash
 # Count how many genuine questions were found
-grep -c "\"is_question\": true" ./reddit_data/analyzed/your_file.json
+grep -c "\"is_question\": true" ./data/analyzed/your_file.json
 
 # Find posts with high confidence scores
-grep -A 20 "confidence_score\": 0.9" ./reddit_data/analyzed/your_file.json
+grep -A 20 "confidence_score\": 0.9" ./data/analyzed/your_file.json
 ```
 
 ## Project Structure
@@ -210,7 +210,7 @@ ProblemSpotter/
 ├── requirements.txt          # Package dependencies
 ├── typings/                  # Type stub files for external libraries
 ├── tests/                    # Test files
-└── reddit_data/              # Data directory
+└── data/              # Data directory
     ├── raw/                  # Raw Reddit data files
     ├── analyzed/             # Analyzed data files
     └── cache/                # Cache for API responses
@@ -223,7 +223,7 @@ ProblemSpotter/
 - **run_pipeline.py**: Orchestrates the complete pipeline of fetching and analyzing posts
 - **requirements.txt**: Lists all Python package dependencies
 - **.env**: Stores API credentials (not in version control)
-- **reddit_data/**: Directory structure that organizes raw data, analysis results, and API response caches
+- **data/**: Directory structure that organizes raw data, analysis results, and API response caches
 
 ## For Developers
 

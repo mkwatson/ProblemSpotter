@@ -18,9 +18,9 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 # Constants
-RAW_DATA_DIR = "./reddit_data/raw/"
-ANALYZED_DATA_DIR = "./reddit_data/analyzed/"
-CACHE_DIR = "./reddit_data/cache/"
+RAW_DATA_DIR = "./data/raw/"
+ANALYZED_DATA_DIR = "./data/analyzed/"
+CACHE_DIR = "./data/cache/"
 OPENAI_MODEL = "gpt-4o"
 DEFAULT_TEMPERATURE = 0.0  # Use 0 for deterministic responses
 

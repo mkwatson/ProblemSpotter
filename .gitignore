@@ -31,7 +31,7 @@ ENV/
 .env.production.local
 
 # Testing
-.coverage
+.coverage*
 htmlcov/
 .pytest_cache/
 coverage.xml
@@ -39,13 +39,23 @@ coverage.xml
 .tox/
 .hypothesis/
 
-# VS Code
+# VS Code and Editor directories
 .vscode/
 .idea/
+.cursor/
 *.swp
 *.swo
 
 # Project specific
+data/raw/
+data/analyzed/
+data/cache/
+reddit_data/raw/
+reddit_data/analyzed/
 reddit_data/cache/
 *.log
 .DS_Store
+
+# Cache directories
+.mypy_cache/
+.ruff_cache/

@@ -1,7 +1,8 @@
 """ProblemSpotter: Reddit 'how do I' question finder.
 
-This script queries Reddit for posts containing "how do I" phrases and stores the results.
-It uses the PRAW library to interact with Reddit's API and handles filtering and data processing.
+This script queries Reddit for posts containing "how do I" phrases and stores the
+results. It uses the PRAW library to interact with Reddit's API and handles filtering
+and data processing.
 """
 
 import json
@@ -15,7 +16,9 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 
 # Constants
-REDDIT_DATA_DIR = "./data/"  # Updated to use standard data directory
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+# Base directory for all Reddit data
+REDDIT_DATA_DIR = os.path.join(PROJECT_ROOT, "reddit_data")
 OUTPUT_DIR = REDDIT_DATA_DIR  # New name for clarity
 SEARCH_PHRASE = "how do I"
 SEARCH_LIMIT = 100
@@ -55,16 +58,27 @@ def load_env_vars() -> RedditCredentials:
     Raises:
         ValueError: If required environment variables are not set.
     """
-    load_dotenv()
+    # Check if variables exist before loading dotenv
+    if "REDDIT_CLIENT_ID" not in os.environ or "REDDIT_CLIENT_SECRET" not in os.environ:
+        load_dotenv()
 
-    # Try both methods for getting environment variables for compatibility
-    client_id = os.environ.get("REDDIT_CLIENT_ID") or os.getenv("REDDIT_CLIENT_ID")
-    client_secret = os.environ.get("REDDIT_CLIENT_SECRET") or os.getenv("REDDIT_CLIENT_SECRET")
+    # Check if variables exist after loading dotenv
+    if "REDDIT_CLIENT_ID" not in os.environ:
+        error_msg = "Required environment variable REDDIT_CLIENT_ID must be " "set in .env file"
+        raise ValueError(error_msg)
 
-    # Explicitly check for None or empty strings
-    if client_id is None or client_id == "" or client_secret is None or client_secret == "":
-        error_msg = "Required environment variables REDDIT_CLIENT_ID and "
-        error_msg += "REDDIT_CLIENT_SECRET must be set in .env file"
+    if "REDDIT_CLIENT_SECRET" not in os.environ:
+        error_msg = "Required environment variable REDDIT_CLIENT_SECRET must be " "set in .env file"
+        raise ValueError(error_msg)
+
+    client_id = os.environ["REDDIT_CLIENT_ID"]
+    client_secret = os.environ["REDDIT_CLIENT_SECRET"]
+
+    if client_id == "" or client_secret == "":
+        error_msg = (
+            "Required environment variables REDDIT_CLIENT_ID and "
+            "REDDIT_CLIENT_SECRET must not be empty"
+        )
         raise ValueError(error_msg)
 
     return {"client_id": client_id, "client_secret": client_secret}
@@ -74,7 +88,8 @@ def initialize_reddit_client(credentials: RedditCredentials) -> praw.Reddit:
     """Initialize the Reddit API client.
 
     Args:
-        credentials: A dictionary containing the Reddit API client ID and secret.
+        credentials: A dictionary containing the Reddit API client ID
+            and secret.
 
     Returns:
         An initialized PRAW Reddit instance.
@@ -87,10 +102,9 @@ def initialize_reddit_client(credentials: RedditCredentials) -> praw.Reddit:
     )
 
     # Store credentials as attributes for testing purposes
-    # We use setattr to dynamically add attributes that don't exist in the class
-    setattr(reddit, "client_id", credentials["client_id"])
-    setattr(reddit, "client_secret", credentials["client_secret"])
-    setattr(reddit, "user_agent", REDDIT_USER_AGENT)
+    reddit.client_id = credentials["client_id"]
+    reddit.client_secret = credentials["client_secret"]
+    reddit.user_agent = REDDIT_USER_AGENT
 
     return reddit
 
@@ -162,7 +176,11 @@ def save_search_results(posts: list[Any], output_dir: str, filename: str | None 
     output_data: list[dict[str, Any]] = []
     for post in posts:
         # Handle both string and Redditor object for author
-        author_name = post.author.name if hasattr(post.author, "name") else str(post.author)
+        author_name = (
+            "[deleted]"
+            if post.author is None
+            else (post.author.name if hasattr(post.author, "name") else str(post.author))
+        )
 
         # Handle both string and Subreddit object for subreddit
         subreddit_name = (
